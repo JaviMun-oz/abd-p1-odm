@@ -314,8 +314,9 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
         db_name : str
             nombre de la base de datos
     """
-    #TODO
-    # Inicializar base de datos
+    client = MongoClient(mongodb_uri)
+    client.admin.command("ping")
+    db = client[db_name]
 
     #TODO
     # Declarar tantas clases modelo colecciones existan en la base de datos
