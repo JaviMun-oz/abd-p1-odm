@@ -1,5 +1,5 @@
 __author__ = 'Pablo Ramos Criado'
-__students__ = 'Nombres_y_Apellidos'
+__students__ = 'Javier Munoz and Adrian Grimes'
 
 
 from geopy.geocoders import Nominatim
