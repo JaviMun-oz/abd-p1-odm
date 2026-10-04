@@ -111,16 +111,20 @@ class Model:
                 diccionario con los valores de las atributos del modelo
         """
         self._data: dict[str, str | dict | list] = {}
-        #TODO
-        # Realizar las comprabociones y gestiones necesarias
-        # antes de la asignacion.
+        
+        # Comprobar que todas las variables requeridas están presentes
+        for var in self._required_vars:
+            if var not in kwargs:
+                raise ValueError(f"Falta el atributo requerido: {var}")
+                
+        # Comprobar que no hay atributos que no sean ni requeridos ni admitidos
+        allowed_vars = self._required_vars | self._admissible_vars
+        for key in kwargs:
+            if key not in allowed_vars:
+                raise ValueError(f"Atributo no admitido: {key}")
 
         # Asigna todos los valores en kwargs a las atributos con 
         # nombre las claves en kwargs
-        # Utilizamos el atributo data para guardar los variables 
-        # almacenadas en la base de datos en una solo atributo
-        # Encapsular los datos en una sola variable facilita la 
-        # gestion en metodos como save.
         self._data.update(kwargs)
 
     def __setattr__(self, name: str, value: str | dict) -> None:
