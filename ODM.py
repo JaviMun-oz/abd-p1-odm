@@ -111,6 +111,8 @@ class Model:
                 diccionario con los valores de las atributos del modelo
         """
         self._data: dict[str, str | dict | list] = {}
+        self._data = {}
+        self._modified_vars = set()
         
         # Comprobar que todas las variables requeridas están presentes
         for var in self._required_vars:
@@ -135,11 +137,10 @@ class Model:
         if name in self._internal_vars:
             super().__setattr__(name, value)
             return
-        #TODO
-        # Realizar las comprabociones y gestiones necesarias
-        # antes de la asignacion.
-
-        # Asigna el valor value a la variable name
+        allowed_vars = self._required_vars | self._admissible_vars
+        if name not in allowed_vars:
+            raise ValueError(f"Atributo no admitido: {name}")
+        self._modified_vars.add(name)
         self._data[name] = value
 
     def __getattr__(self, name: str) -> Any:
