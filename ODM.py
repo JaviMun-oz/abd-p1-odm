@@ -168,7 +168,7 @@ class Model:
                 self._data[self._location_var + "_loc"] = getLocationPoint(self._data[self._location_var])
             result = self._db.insert_one(self._data)
             self._data["_id"] = result.inserted_id
-            
+
         else:
             modified_data = {}
 
@@ -181,15 +181,16 @@ class Model:
 
         self._modified_vars.clear()
 
-        #TODO
-         #No olvidar eliminar esta linea una vez implementado
 
     def delete(self) -> None:
+        if "_id" not in self._data:
+            return
         """
         Elimina el modelo de la base de datos
         """
-        #TODO
-        pass
+
+        self._db.delete_one({"_id": self._data["_id"]})
+
     
     @classmethod
     def find(cls, filter: dict[str, str | dict]) -> Any:
