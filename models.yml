@@ -30,7 +30,7 @@ Recinto:
   location_index: direccion
 
 
-  Artista:
+Artista:
   required_vars:
     - nombre
   admissible_vars:
@@ -56,7 +56,7 @@ Evento:
     - recinto_id
     - artistas_ids
 
-  Asistente:
+Asistente:
   required_vars:
     - nombre
     - email
