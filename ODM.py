@@ -253,7 +253,7 @@ class Model:
         cls._db = db_collection
         cls._required_vars = required_vars
         cls._admissible_vars = admissible_vars
-        
+
         for field, index_type in indexes.items():
             if index_type == "unique":
                 cls._db.create_index(field, unique=True)
@@ -333,17 +333,28 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
     client.admin.command("ping")
     db = client[db_name]
 
-    #TODO
-    # Declarar tantas clases modelo colecciones existan en la base de datos
-    # Leer el fichero de definiciones de modelos para obtener las colecciones,
-    # indices y los atributos admitidos y requeridos para cada una de ellas.
-    # Ejemplo de declaracion de modelo para colecion llamada MiModelo
-    scope["MiModelo"] = type("MiModelo", (Model,),{})
-    # La clase se declara en tiempo de ejecucion y queda en scope, que no tiene
-    # por que ser el espacio de nombres global: las pruebas le pasan su propio
-    # diccionario. Por eso se inicializa a traves de scope y no por su nombre,
-    # que ahi todavia no existe.
-    scope["MiModelo"].init_class(db_collection=None, indexes=None, required_vars=None, admissible_vars=None)
+    with open(definitions_path, "r") as file:
+        definitions = yaml.safe_load(file)
+
+    for model_name, model_info in definitions.items():
+        scope[model_name] = type(model_name, (Model,), {})
+        required_vars = set(model_info.get("required_vars", []))
+        admissible_vars = set(model_info.get("admissible_vars", []))
+    
+        indexes = {}
+        for field in model_info.get("unique_indexes", []):
+            indexes[field] = "unique"
+            
+        for field in model_info.get("regular_indexes", []):
+                indexes[field] = "asc"
+
+        location_field = model_info.get("location_index")
+        if location_field is not None:
+            indexes[location_field] = "geosphere"
+        
+        scope[model_name].init_class(db_collection=db[model_name], indexes=indexes, required_vars=required_vars, admissible_vars=admissible_vars)
+
+    
 
 if __name__ == '__main__':
     
