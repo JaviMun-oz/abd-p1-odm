@@ -163,8 +163,26 @@ class Model:
         actualiza el documento existente con los nuevos valores del
         modelo.
         """
+        if "_id" not in self._data:
+            if self._location_var is not None and self._location_var in self._data:
+                self._data[self._location_var + "_loc"] = getLocationPoint(self._data[self._location_var])
+            result = self._db.insert_one(self._data)
+            self._data["_id"] = result.inserted_id
+            
+        else:
+            modified_data = {}
+
+            for field in self._modified_vars:
+                modified_data[field] = self._data[field]
+            if self._location_var is not None and self._location_var in self._modified_vars:
+                modified_data[self._location_var + "_loc"] = getLocationPoint(self._data[self._location_var])
+                
+            self._db.update_one( {"_id": self._data["_id"]}, {"$set": modified_data})
+
+        self._modified_vars.clear()
+
         #TODO
-        pass #No olvidar eliminar esta linea una vez implementado
+         #No olvidar eliminar esta linea una vez implementado
 
     def delete(self) -> None:
         """
