@@ -374,16 +374,37 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
 
 if __name__ == '__main__':
     
-    # Inicializar base de datos y modelos con initApp
     #TODO
     initApp()
 
-    #Ejemplo
-    m = MiModelo(nombre="Pablo", apellido="Ramos", edad=18)
-    m.save()
-    m.nombre="Pedro"
-    print(m.nombre)
+    recinto = Recinto(
+        nombre="Recinto Prueba",
+        direccion="Gran Via, Madrid, Spain",
+        aforo=1000
+    )
+    print("Creado:", recinto.nombre, recinto.aforo)
 
+    # 2. Save for the first time -> INSERT
+    recinto.save()
+    print("Guardado con ID:", recinto._data["_id"])
+
+    # 3. Modify an allowed attribute
+    recinto.aforo = 1500
+    print("Nuevo aforo:", recinto.aforo)
+
+    # 4. Save again -> UPDATE
+    recinto.save()
+    print("Actualizado")
+
+    # 5. Test an invalid attribute
+    try:
+        recinto.patata = "no permitido"
+    except ValueError as e:
+        print("Error esperado:", e)
+
+    # 6. Delete it
+    recinto.delete()
+    print("Eliminado")
     # Hacer pruebas para comprobar que funciona correctamente el modelo
     #TODO
     # Crear modelo
