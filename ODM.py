@@ -57,7 +57,7 @@ def getLocationPoint(address: str) -> Point:
 class Model:
     """ 
     Clase de modelo abstracta
-    Crear tantas clases que hereden de esta clase como  
+    Crear tantas clases que heredhen de esta clase como  
     colecciones/modelos se deseen tener en la base de datos.
 
     Attributes
@@ -111,7 +111,6 @@ class Model:
                 diccionario con los valores de las atributos del modelo
         """
         self._data: dict[str, str | dict | list] = {}
-        self._data = {}
         self._modified_vars = set()
         
         # Comprobar que todas las variables requeridas están presentes
@@ -208,9 +207,8 @@ class Model:
             ModelCursor
                 cursor de modelos
         """ 
-        #TODO
-        # cls es el puntero a la clase
-        pass #No olvidar eliminar esta linea una vez implementado
+        cursor = cls._db.find(filter)
+        return ModelCursor(cls, cursor)
 
     @classmethod
     def aggregate(cls, pipeline: list[dict]) -> pymongo.command_cursor.CommandCursor:
@@ -278,13 +276,12 @@ class Model:
                 cls._db.create_index(field, unique=True)
 
             elif index_type == "asc":
-                  cls._db.create_index([(field, pymongo.ASCENDING)])
+                 cls._db.create_index([(field, pymongo.ASCENDING)])
 
             elif index_type == "geosphere":
                 cls._location_var = field
                 cls._db.create_index([(field + "_loc", pymongo.GEOSPHERE)])
-
-
+   
 class ModelCursor:
     """ 
     Cursor para iterar sobre los documentos del resultado de una
