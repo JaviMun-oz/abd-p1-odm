@@ -35,7 +35,6 @@ def getLocationPoint(address: str) -> Point:
         intentos += 1
         try:
             time.sleep(1)
-            #TODO
             # Es necesario proporcionar un user_agent para utilizar la API
             # Utilizar un nombre aleatorio para el user_agent
             location = Nominatim(user_agent="EnVivoApp_Geocoder_12345").geocode(address)
@@ -43,16 +42,16 @@ def getLocationPoint(address: str) -> Point:
             # Puede lanzar una excepcion si se supera el tiempo de espera
             # Volver a intentarlo
             continue
-     #TODO
+            
     # Devolver un GeoJSON de tipo punto con la latitud y longitud almacenadas.
     # Si no se consiguieron coordenadas, lanzar ValueError: la funcion no puede
     # devolver un punto inventado ni None silenciosamente. Es lo que espera la
     # prueba test_get_location_point_timeout_failure.
-            
     if location is None:
         raise ValueError("No se pudieron obtener coordenadas")
         
     return Point((location.longitude, location.latitude))
+
 
 class Model:
     """ 
@@ -281,6 +280,7 @@ class Model:
             elif index_type == "geosphere":
                 cls._location_var = field
                 cls._db.create_index([(field + "_loc", pymongo.GEOSPHERE)])
+
    
 class ModelCursor:
     """ 
@@ -315,7 +315,7 @@ class ModelCursor:
         """
         self.model = model_class
         self.cursor = cursor
-    
+
     def __iter__(self) -> Generator:
         """
         Devuelve un iterador que recorre los elementos del cursor
@@ -324,8 +324,13 @@ class ModelCursor:
         Utilizar la funcion next para obtener el siguiente documento del cursor
         Utilizar alive para comprobar si existen mas documentos.
         """
-        #TODO
-        pass #No olvidar eliminar esta linea una vez implementado
+        while self.cursor.alive:
+            doc = self.cursor.next()
+            # Usamos __new__ para evitar la validación de __init__ en documentos ya existentes en BBDD
+            instance = self.model.__new__(self.model)
+            instance._data = doc
+            instance._modified_vars = set()
+            yield instance
 
 
 def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://localhost:27017/", db_name="abd", scope=globals()) -> None:
@@ -374,34 +379,69 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
 
 if __name__ == '__main__':
     
-    # Inicializar base de datos y modelos con initApp
-    #TODO
-    initApp()
+    # Inicializar base de datos y modelos con initApp
+    # (Asegúrate de pasar la ruta correcta a tu archivo de modelos YAML, ej: "./models.yml" o "./models_2.yml")
+    initApp(definitions_path="./models.yml")
 
-    #Ejemplo
-    m = MiModelo(nombre="Pablo", apellido="Ramos", edad=18)
-    m.save()
-    m.nombre="Pedro"
-    print(m.nombre)
+    print("--- INICIO DE PRUEBAS LOCALES EN EL MAIN ---")
 
-    # Hacer pruebas para comprobar que funciona correctamente el modelo
-    #TODO
-    # Crear modelo
+    try:
+        # 1. Crear modelo
+        print("1. Creando instancia del modelo Recinto...")
+        r = Recinto(
+            nombre="WiZink Center", 
+            direccion="Av. de Felipe II, s/n, Salamanca, 28009 Madrid", 
+            aforo=17400
+        )
 
-    # Asignar nuevo valor a variable admitida del objeto 
+        # 2. Asignar nuevo valor a variable admitida del objeto
+        print("2. Asignando atributo admitido (servicios)...")
+        r.servicios = ["Conciertos", "Eventos deportivos"]
 
-    # Asignar nuevo valor a variable no admitida del objeto 
+        # 3. Asignar nuevo valor a variable no admitida del objeto (debe lanzar ValueError)
+        print("3. Comprobando atributo no admitido (debe lanzar excepción)...")
+        try:
+            r.atributo_inventado = "error"
+        except ValueError as e:
+            print(f" -> Excepción capturada con éxito: {e}")
 
-    # Guardar
+        # 4. Guardar (Inserta el documento nuevo y calcula la geolocalización)
+        print("4. Guardando el documento en MongoDB...")
+        r.save()
+        print(f" -> Documento insertado con _id: {r._data.get('_id')}")
 
-    # Asignar nuevo valor a variable admitida del objeto
+        # 5. Asignar nuevo valor a variable admitida del objeto
+        print("5. Modificando una variable admitida existente (aforo)...")
+        r.aforo = 18000
 
-    # Guardar
+        # 6. Guardar (Actualiza solo los campos modificados en la BBDD)
+        print("6. Guardando actualización parcial...")
+        r.save()
 
-    # Buscar nuevo documento con find
+        # 7. Buscar nuevo documento con find (devuelve un ModelCursor)
+        print("7. Realizando búsqueda con find()...")
+        cursor = Recinto.find({"nombre": "WiZink Center"})
 
-    # Obtener primer documento
+        # 8. Obtener primer documento del cursor iterando con un bucle
+        print("8. Iterando sobre el ModelCursor para obtener el documento...")
+        primer_documento = None
+        for elemento in cursor:
+            primer_documento = elemento
+            break  # Obtenemos el primero
 
-    # Modificar valor de variable admitida
+        if primer_documento:
+            print(f" -> Encontrado: {primer_documento.nombre} con aforo {primer_documento.aforo}")
 
-    # Guardar
+            # 9. Modificar valor de variable admitida en el objeto recuperado
+            print("9. Modificando aforo en el objeto recuperado...")
+            primer_documento.aforo = 18500
+
+            # 10. Guardar los cambios del objeto recuperado
+            print("10. Guardando cambios finales...")
+            primer_documento.save()
+            print(" -> Cambios guardados correctamente.")
+
+        print("--- PRUEBAS DEL MAIN FINALIZADAS CON ÉXITO ---")
+
+    except Exception as e:
+        print(f"Error durante la ejecución de las pruebas: {e}")
