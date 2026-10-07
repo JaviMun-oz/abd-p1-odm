@@ -374,14 +374,10 @@ def initApp(definitions_path: str = "./models.yml", mongodb_uri="mongodb://local
             indexes[location_field] = "geosphere"
         
         scope[model_name].init_class(db_collection=db[model_name], indexes=indexes, required_vars=required_vars, admissible_vars=admissible_vars)
-
-    
-
 if __name__ == '__main__':
     
     # Inicializar base de datos y modelos con initApp
-    # (Asegúrate de pasar la ruta correcta a tu archivo de modelos YAML, ej: "./models.yml" o "./models_2.yml")
-    initApp(definitions_path="./models.yml")
+    initApp()
 
     print("--- INICIO DE PRUEBAS LOCALES EN EL MAIN ---")
 
@@ -440,6 +436,11 @@ if __name__ == '__main__':
             print("10. Guardando cambios finales...")
             primer_documento.save()
             print(" -> Cambios guardados correctamente.")
+
+        # 11. Eliminar el documento de prueba
+        print("11. Eliminando el documento...")
+        r.delete()
+        print(" -> Documento eliminado con éxito.")
 
         print("--- PRUEBAS DEL MAIN FINALIZADAS CON ÉXITO ---")
 
