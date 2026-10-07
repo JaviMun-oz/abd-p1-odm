@@ -173,7 +173,9 @@ class Model:
             for field in self._modified_vars:
                 modified_data[field] = self._data[field]
             if self._location_var is not None and self._location_var in self._modified_vars:
-                modified_data[self._location_var + "_loc"] = getLocationPoint(self._data[self._location_var])
+                loc_point= getLocationPoint(self._data[self._location_var])
+                modified_data[self._location_var + "_loc"] = loc_point
+                self._data[self._location_var + "_loc"]=loc_point
                 
             self._db.update_one( {"_id": self._data["_id"]}, {"$set": modified_data})
 
